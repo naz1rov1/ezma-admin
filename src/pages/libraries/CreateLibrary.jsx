@@ -17,10 +17,8 @@ import { YMaps, Map, ZoomControl, Placemark } from "@pbe/react-yandex-maps";
 
 import { API } from "../../api/API";
 
-
 const phoneClean = (v) =>
   v.replace(/\D/g, "").replace(/^998/, "").replace(/^0/, "");
-
 
 const schema = yup.object().shape({
   name: yup.string().required("Ismni kiriting"),
@@ -39,11 +37,10 @@ const schema = yup.object().shape({
   can_rent_books: yup.boolean(),
 });
 
-
 const SectionTitle = ({ title }) => (
   <div className="mt-10 mb-6">
     <h2 className="text-lg font-semibold text-white">{title}</h2>
-    <div className=" bg-gray-700 mt-2" />
+    <div className="bg-gray-700 mt-2" />
   </div>
 );
 
@@ -54,6 +51,14 @@ const CreateLibrary = () => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (body) => API.post("/auth/register-library/", body),
+    onSuccess: (res) => {
+      console.log("Kutubxona yaratildi:", res.data);
+      navigate("/libraries"); 
+    },
+    onError: (err) => {
+      console.error("Xato:", err.response?.status, err.response?.data);
+      alert(err.response?.data?.message || "Xatolik yuz berdi");
+    },
   });
 
   const {
@@ -85,7 +90,7 @@ const CreateLibrary = () => {
       },
     };
 
-  
+    mutate(body); 
   };
 
   return (
@@ -178,6 +183,7 @@ const CreateLibrary = () => {
                   navigator.geolocation.getCurrentPosition((pos) => {
                     setValue("latitude", pos.coords.latitude);
                     setValue("longitude", pos.coords.longitude);
+                    setCoords([pos.coords.latitude, pos.coords.longitude]);
                   })
                 }
               >
@@ -185,7 +191,7 @@ const CreateLibrary = () => {
               </Button>
             </div>
 
-            <div className=" rounded-lg overflow-hidden">
+            <div className="rounded-lg overflow-hidden">
               <YMaps query={{ apikey: "3d763bcd-1d38-4d2c-bda0-41deb0997e82" }}>
                 <Map
                   defaultState={{ center: [41.2995, 69.2401], zoom: 12 }}
