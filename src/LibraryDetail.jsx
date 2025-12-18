@@ -62,33 +62,11 @@ const LibraryDetail = () => {
             <h3 className="text-red-400 font-semibold flex items-center gap-2">
               <Send size={16} /> Ijtimoiy tarmoqlar
             </h3>
-            <div className="flex flex-col gap-1">
-              {library.telegram && (
-                <a
-                  href={library.telegram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:underline"
-                >
-                  Telegram
-                </a>
-              )}
-              {library.instagram && (
-                <a
-                  href={library.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-pink-400 hover:underline"
-                >
-                  Instagram
-                </a>
-              )}
-            </div>
+           
           </div>
         </div>
       </div>
 
-      {/* O'ng: Yandex Map */}
       <div className="bg-gray-900 p-4 rounded-xl shadow-md">
         <h2 className="text-lg mb-3 text-white flex items-center gap-2">
           <MapPin className="text-red-400" /> Manzil
@@ -99,7 +77,6 @@ const LibraryDetail = () => {
             src="https://yandex.uz/map-widget/v1/?ll=69.240562%2C41.299496&z=12"
             width="100%"
             height="350"
-            frameBorder="0"
             title="map"
           />
         </div>

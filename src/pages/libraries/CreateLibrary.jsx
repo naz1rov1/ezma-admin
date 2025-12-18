@@ -1,219 +1,230 @@
 import { useState } from "react";
+import {
+  Button,
+  Container,
+  PasswordInput,
+  Switch,
+  TextInput,
+} from "@mantine/core";
+import { IconCheck, IconX } from "@tabler/icons-react";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { YMaps, Map, ZoomControl, Placemark } from "@pbe/react-yandex-maps";
+
 import { API } from "../../api/API";
-import { FaFacebook, FaInstagram, FaTelegram } from "react-icons/fa";
+
+
+const phoneClean = (v) =>
+  v.replace(/\D/g, "").replace(/^998/, "").replace(/^0/, "");
+
+
+const schema = yup.object().shape({
+  name: yup.string().required("Ismni kiriting"),
+  phone: yup
+    .string()
+    .required("Telefon raqamni kiriting")
+    .transform((val) => (val ? phoneClean(val) : ""))
+    .matches(/^\d{9}$/, "Telefon raqam formati: 901234567"),
+  password: yup.string().required("Parolni kiriting").min(6),
+  address: yup.string().required("Manzilni kiriting"),
+  latitude: yup.string().required("Kenglikni kiriting"),
+  longitude: yup.string().required("Uzunlikni kiriting"),
+  instagram: yup.string().nullable(),
+  facebook: yup.string().nullable(),
+  telegram: yup.string().nullable(),
+  can_rent_books: yup.boolean(),
+});
+
+
+const SectionTitle = ({ title }) => (
+  <div className="mt-10 mb-6">
+    <h2 className="text-lg font-semibold text-white">{title}</h2>
+    <div className=" bg-gray-700 mt-2" />
+  </div>
+);
 
 const CreateLibrary = () => {
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    password: "",
-    address: "",
-    latitude: "",
-    longitude: "",
-    facebook: "",
-    instagram: "",
-    telegram: "",
+  const navigate = useNavigate();
+  const [checked, setChecked] = useState(false);
+  const [coords, setCoords] = useState(null);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (body) => API.post("/auth/register-library/", body),
   });
 
-  const [errors, setErrors] = useState({});
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: null });
-  };
-
-  const validate = () => {
-    const e = {};
-
-    if (!form.name) e.name = "Ism majburiy";
-    if (!form.phone.startsWith("+998"))
-      e.phone = "Telefon +998 bilan boshlanishi kerak";
-    if (form.password.length < 8)
-      e.password = "Parol kamida 8 ta belgidan iborat bo‘lsin";
-    if (!form.address) e.address = "Manzil majburiy";
-    if (!form.latitude) e.latitude = "Latitude majburiy";
-    if (!form.longitude) e.longitude = "Longitude majburiy";
-
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+  const onSubmit = (data) => {
+    const body = {
+      library: {
+        address: data.address,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        can_rent_books: checked,
+        social_media: {
+          instagram: data.instagram,
+          facebook: data.facebook,
+          telegram: data.telegram,
+        },
+      },
+      user: {
+        name: data.name,
+        phone: data.phone,
+        password: data.password,
+      },
+    };
 
   
-    const fd = new FormData();
-    fd.append("name", form.name);
-    fd.append("phone", form.phone);
-    fd.append("password", form.password);
-    fd.append("address", form.address);
-    fd.append("latitude", form.latitude);
-    fd.append("longitude", form.longitude);
-    fd.append("facebook", form.facebook);
-    fd.append("instagram", form.instagram);
-    fd.append("telegram", form.telegram);
-
-    try {
-      await API.post("/auth/register-library/", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      alert("✅ Kutubxona muvaffaqiyatli qo‘shildi");
-    } catch (err) {
-      const backendErrors = err.response?.data || {};
-      console.log("BACKEND:", backendErrors);
-      setErrors(backendErrors);
-    }
   };
 
-  const inputClass =
-    "w-full bg-transparent border border-gray-700 rounded-md px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition";
-
-  const Error = ({ text }) =>
-    text ? <p className="text-red-500 text-sm mt-1">{text}</p> : null;
-
   return (
-    <div className="max-w-7xl mx-auto p-6 text-white">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-gradient from-gray-900 to-black rounded-xl p-6 space-y-8"
-      >
-        {/* User */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">
-            Foydalanuvchi ma’lumotlari
-          </h2>
+    <Container size="xl" py="xl">
+      <div className="p-8 text-white">
+        <h1 className="text-2xl font-bold mb-2">Kutubxona qo‘shish</h1>
+        <p className="text-gray-400 text-sm">
+          Kutubxona va foydalanuvchi maʼlumotlarini kiriting
+        </p>
 
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <input
-                name="name"
-                placeholder="Ism"
-                className={inputClass}
-                onChange={handleChange}
-              />
-              <Error text={errors.name} />
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <SectionTitle title="Foydalanuvchi ma'lumotlari" />
+
+          <div className="grid grid-cols-3 gap-6">
+            <TextInput
+              label="Ism"
+              placeholder="Foydalanuvchi ismini kiriting"
+              {...register("name")}
+              error={errors.name?.message}
+            />
+
+            <TextInput
+              label="Telefon"
+              placeholder="Telefon raqamini kiriting"
+              {...register("phone")}
+              onBlur={(e) => setValue("phone", phoneClean(e.target.value))}
+              error={errors.phone?.message}
+            />
+
+            <PasswordInput
+              label="Parol"
+              placeholder="Parolni kiriting"
+              {...register("password")}
+              error={errors.password?.message}
+            />
+          </div>
+
+          <SectionTitle title="Kutubxona ma'lumotlari" />
+
+          <div className="grid grid-cols-3 gap-6">
+            <TextInput
+              label="Manzil"
+              {...register("address")}
+              error={errors.address?.message}
+            />
+
+            <TextInput
+              label="Kenglik"
+              placeholder="Kenglik koordinatasi"
+              {...register("latitude")}
+              error={errors.latitude?.message}
+            />
+
+            <TextInput
+              label="Uzunlik"
+              placeholder="Uzunlik koordinatasi"
+              {...register("longitude")}
+              error={errors.longitude?.message}
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-6 mt-6">
+            <TextInput label="Instagram" {...register("instagram")} />
+            <TextInput label="Facebook" {...register("facebook")} />
+            <TextInput label="Telegram" {...register("telegram")} />
+          </div>
+
+          <div className="mt-6">
+            <Switch
+              label="Kitob ijarasi mavjud"
+              checked={checked}
+              onChange={(e) => {
+                setChecked(e.currentTarget.checked);
+                setValue("can_rent_books", e.currentTarget.checked);
+              }}
+              thumbIcon={
+                checked ? <IconCheck size={12} /> : <IconX size={12} />
+              }
+            />
+          </div>
+
+          <SectionTitle title="Joylashuv" />
+
+          <div className="bg-[#121a2a] rounded-xl p-4">
+            <div className="flex justify-between mb-4">
+              <span className="font-medium">Xaritadan tanlang</span>
+              <Button
+                size="xs"
+                onClick={() =>
+                  navigator.geolocation.getCurrentPosition((pos) => {
+                    setValue("latitude", pos.coords.latitude);
+                    setValue("longitude", pos.coords.longitude);
+                  })
+                }
+              >
+                Hozirgi joylashuv
+              </Button>
             </div>
 
-            <div>
-              <input
-                name="phone"
-                placeholder="+998901234567"
-                className={inputClass}
-                onChange={handleChange}
-              />
-              <Error text={errors.phone} />
-            </div>
-
-            <div>
-              <input
-                name="password"
-                type="password"
-                placeholder="Parol"
-                className={inputClass}
-                onChange={handleChange}
-              />
-              <Error text={errors.password} />
+            <div className=" rounded-lg overflow-hidden">
+              <YMaps query={{ apikey: "3d763bcd-1d38-4d2c-bda0-41deb0997e82" }}>
+                <Map
+                  defaultState={{ center: [41.2995, 69.2401], zoom: 12 }}
+                  width="100%"
+                  height="400px"
+                  onClick={(e) => {
+                    const c = e.get("coords");
+                    setCoords(c);
+                    setValue("latitude", c[0]);
+                    setValue("longitude", c[1]);
+                  }}
+                >
+                  <ZoomControl />
+                  {coords && <Placemark geometry={coords} />}
+                </Map>
+              </YMaps>
             </div>
           </div>
-        </div>
 
-        {/* Library */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Kutubxona ma’lumotlari</h2>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <input
-                name="address"
-                placeholder="Manzil"
-                className={inputClass}
-                onChange={handleChange}
-              />
-              <Error text={errors.address} />
-            </div>
-
-            <div>
-              <input
-                name="latitude"
-                placeholder="Latitude"
-                className={inputClass}
-                onChange={handleChange}
-              />
-              <Error text={errors.latitude} />
-            </div>
-
-            <div>
-              <input
-                name="longitude"
-                placeholder="Longitude"
-                className={inputClass}
-                onChange={handleChange}
-              />
-              <Error text={errors.longitude} />
-            </div>
+          <div className="flex justify-end gap-4 mt-10">
+            <Button
+              variant="outline"
+              color="gray"
+              onClick={() => navigate(-1)}
+              className="bg-red-600 p-2 rounded-xl"
+            >
+              Bekor qilish
+            </Button>
+            <Button
+              type="submit"
+              loading={isPending}
+              className="bg-red-600 p-2 rounded-xl"
+            >
+              Saqlash
+            </Button>
           </div>
-        </div>
-
-     
-        <div className="rounded-xl overflow-hidden border border-gray-700">
-          <iframe
-            src="https://yandex.uz/map-widget/v1/?ll=69.240562%2C41.299496&z=12"
-            width="100%"
-            height="350"
-            frameBorder="0"
-            title="map"
-          />
-        </div>
-
-        {/* Social */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Ijtimoiy tarmoqlar</h2>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="relative">
-              <FaFacebook className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500" />
-              <input
-                name="facebook"
-                placeholder="Facebook"
-                className={`${inputClass} pl-10`}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="relative">
-              <FaInstagram className="absolute left-3 top-1/2 -translate-y-1/2 text-pink-500" />
-              <input
-                name="instagram"
-                placeholder="Instagram"
-                className={`${inputClass} pl-10`}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="relative">
-              <FaTelegram className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-500" />
-              <input
-                name="telegram"
-                placeholder="Telegram"
-                className={`${inputClass} pl-10`}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Submit */}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="px-8 py-3 bg-red-600 hover:bg-red-700 rounded-md font-semibold transition"
-          >
-            Qo‘shish
-          </button>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </Container>
   );
 };
 
