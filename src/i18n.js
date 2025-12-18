@@ -9,7 +9,7 @@ i18n.use(initReactI18next).init({
         books: "Kitoblar",
         exit: "Chiqish",
         addLibrary: "kutubxona qo'shish",
-        update: "tahrirlash", // <-- qo‘shildi
+        update: "tahrirlash",
       },
     },
     ru: {
@@ -18,7 +18,7 @@ i18n.use(initReactI18next).init({
         books: "Книги",
         exit: "Выход",
         addLibrary: "Добавить библиотеку",
-        update: "исправить", // <-- qo‘shildi
+        update: "исправить", 
       },
     },
     en: {
@@ -27,7 +27,7 @@ i18n.use(initReactI18next).init({
         books: "Books",
         exit: "Exit",
         addLibrary: "Add Library",
-        update: "Update", // <-- qo‘shildi
+        update: "Update",
       },
     },
   },

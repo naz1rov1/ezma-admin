@@ -6,7 +6,7 @@ import { API } from "../../api/API";
 import { useTranslation } from "react-i18next";
 
 const Sidebar = ({ isSidebarOpen }) => {
-  const { t } = useTranslation(); // i18n hook
+  const { t } = useTranslation(); 
   const navigate = useNavigate();
 
   const { data: profileM } = useQuery({
@@ -19,7 +19,7 @@ const Sidebar = ({ isSidebarOpen }) => {
     navigate("/login", { replace: true });
   };
 
-  // Link klassini aniqlash
+ 
   const linkClass = ({ isActive }) =>
     `flex items-center gap-3 p-3 rounded transition-colors duration-200 ${
       isActive ? "bg-gray-700 text-red-500" : "text-gray-300 hover:bg-gray-800"
@@ -28,7 +28,7 @@ const Sidebar = ({ isSidebarOpen }) => {
   return (
     <div className="flex flex-col p-4 gap-2 h-full justify-between">
       <div className="flex flex-col gap-2">
-        {/* Profil */}
+     
         <NavLink to="/profile" className={linkClass} end>
           <FaUser />
           {isSidebarOpen && (
@@ -36,19 +36,17 @@ const Sidebar = ({ isSidebarOpen }) => {
           )}
         </NavLink>
 
-        {/* Kutubxonalar */}
         <NavLink to="/libraries" className={linkClass} end>
           <FaFolder />
           {isSidebarOpen && <span>{t("librirary")}</span>}
         </NavLink>
 
-        {/* Kitoblar */}
         <NavLink to="/books" className={linkClass} end>
           <FaBook />
           {isSidebarOpen && <span>{t("books")}</span>}
         </NavLink>
 
-        {/* Yangi kutubxona qo'shish */}
+   
         <NavLink to="/libraries/create" className={linkClass} end>
           <FaPlus />
           {isSidebarOpen && <span>{t("addLibrary")}</span>}
